@@ -3,37 +3,37 @@
 // This file defines the Node data structure, which is used to represent one node
 // in a DecisionTree.
 
-namespace MicrosoftResearch { namespace Cambridge { namespace Sherwood
+//namespace MicrosoftResearch { namespace Cambridge { namespace Sherwood
+//{
+// Default serialization functions used for serializing Feature and
+// StatisticsAggregator types. If your implementations are not simple
+// value types then use explicit template instantiation to override.
+template<class T>
+void Serialize_(std::ostream& o, const T& t)
 {
-  // Default serialization functions used for serializing Feature and
-  // StatisticsAggregator types. If your implementations are not simple
-  // value types then use explicit template instantiation to override.
-  template<class T>
-  void Serialize_(std::ostream& o, const T& t)
-  {
-    o.write((const char*)(&t), sizeof(T));
-  }
+  o.write((const char*)(&t), sizeof(T));
+}
 
-  template<class T>
-  void Deserialize_(std::istream& o, T& t)
-  {
-    o.read((char*)(&t), sizeof(T));
-  }
+template<class T>
+void Deserialize_(std::istream& o, T& t)
+{
+  o.read((char*)(&t), sizeof(T));
+}
 
-  /// <summary>
-  /// One node in a decision tree.
-  /// </summary>
+/// <summary>
+/// One node in a decision tree.
+/// </summary>
 
-  // *** NB We implement Nodes and their constituent IFeatureResponse and
-  // IStatisticsAggregrator implementations using value types so as to
-  // avoid the need for multiple objects to be allocated seperately on the
-  // garbage collected heap - instead all the data associated with a tree can
-  // be stored within a single, contiguous block of memory. This can
-  // increase performance by (i) increasing spatial locality of reference
-  // (and thus cache utilization) and (ii) decreasing the load on the .NET
-  // memory manager.
+// *** NB We implement Nodes and their constituent IFeatureResponse and
+// IStatisticsAggregrator implementations using value types so as to
+// avoid the need for multiple objects to be allocated seperately on the
+// garbage collected heap - instead all the data associated with a tree can
+// be stored within a single, contiguous block of memory. This can
+// increase performance by (i) increasing spatial locality of reference
+// (and thus cache utilization) and (ii) decreasing the load on the .NET
+// memory manager.
 
-  template<class F, class S>
+template<class F, class S>
   struct Node // where F : IFeatureResponse where S: IStatisticsAggregator<S>
   {
     // NB Null nodes (i.e. uninitialized nodes corresponding to the bottom of
@@ -119,4 +119,4 @@ namespace MicrosoftResearch { namespace Cambridge { namespace Sherwood
     /// </summary>
     bool IsNull() const { return !bIsLeaf_ && !bIsSplit_; }
   };
-} } }
+//} } }
