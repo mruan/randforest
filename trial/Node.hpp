@@ -41,4 +41,10 @@ public:
     is.read((const char*)(&threshold), sizeof(float));
     //    pStats->Deserialize(is);
   }
+
+  bool IsSplit() const{ return noteType == SPLIT; }
+
+  bool IsLeaf() const { return noteType == LEAF; }
+
+  bool IsNull() const { return noteType == INVALID;}
 };
