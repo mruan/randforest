@@ -52,6 +52,29 @@ Clear()
 }
 
 void HistAggregator::
-Aggregate()
-{}
+Aggregate(const unsigned char classID)
+{
+  ++bins_[classID];
+  ++sampleCount_;
+}
 
+void HistAggregator::
+Aggregate(std::vector<unsigned char>& labels, std::vector<int>& index)
+{
+  for(int &i : index)
+      ++bins_[labels[i]];
+
+  sampleCount += index.size();
+}
+
+void HistAggregator::
+Aggregate(const HistAggregator& aggr)
+{
+  for(unsigned int i=0; i< binCount_; i++)
+    {
+      bins_[i] += aggr.bins_[i];
+    }
+  sampleCount_ += aggr.sampleCount_;
+}
+
+// FIX:: deep clone

@@ -21,7 +21,9 @@ class HistAggregator
   // IStatsAggregator implementation
   void Clear();
 
-  void Aggregate();
+  void Aggregate(std::vector<unsigned char>& labels, std::vector<int>& index);
+  
+  void Aggregate(const unsigned char classID);
 
   void Aggregate(const HistAggregator& aggr);
 

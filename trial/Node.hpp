@@ -25,6 +25,8 @@ public:
     return Node(type, f, th, pS);
   }
 
+  Node():nodeType(INVALID){}
+
   Node(unsigned char type, F f, float th, unique_ptr<S> pS)
     :nodeType(type),feature(f), threshold(th), pStats(pS){}
 
@@ -42,9 +44,22 @@ public:
     //    pStats->Deserialize(is);
   }
 
-  bool IsSplit() const{ return noteType == SPLIT; }
+  bool IsSplit() const{ return nodeType == SPLIT; }
 
-  bool IsLeaf() const { return noteType == LEAF; }
+  bool IsLeaf() const { return nodeType == LEAF; }
 
-  bool IsNull() const { return noteType == INVALID;}
+  bool IsNull() const { return nodeType == INVALID;}
+
+  void InitSplit(F& f, float th)
+  {
+    feature = f;
+    threshold = th;
+    nodeType = SPLIT;
+  }
+
+  void InitLeaf(const S& stats)
+  {
+    pStats.reset(new S(stats));
+    nodeType = LEAF;
+  }
 };
