@@ -73,7 +73,7 @@ public:
     // First aggregate statistics over the samples at the parent node
     // TODO: this is very in-efficient way of aggregating data!!
     pStats_.Clear();
-    for(SampleIndex i0; i < i1; i++)
+    for(SampleIndex i= i0; i < i1; i++)
       pStats_.Aggregate(data_, indices_[i]);
 
     if (nodeIndex >= nodes.size() /2) // this is a leaft node, do nothing

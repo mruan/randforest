@@ -41,4 +41,5 @@ public:
     is.read((const char*)(&threshold), sizeof(float));
     //    pStats->Deserialize(is);
   }
+
 };
