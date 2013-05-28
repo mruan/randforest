@@ -34,14 +34,14 @@ public:
   {
     feature.Serialize(os);
     os.write((const char*)(&threshold), sizeof(float));
-    //    pStats->Serialize(os);
+    pStats->Serialize(os);
   }
 
   void Deserialize(std::istream& is) const
   {
     feature.Deserialize(is);
     is.read((const char*)(&threshold), sizeof(float));
-    //    pStats->Deserialize(is);
+    pStats.reset(S::Deserialize(is));
   }
 
   bool IsSplit() const{ return nodeType == SPLIT; }

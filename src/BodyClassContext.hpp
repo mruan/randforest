@@ -1,6 +1,6 @@
 
 //#include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Sherwood.h"
 
@@ -8,29 +8,34 @@
 #include "FeatureResponse.hpp"
 #include "DataCollection.hpp"
 
-template<class F>
+template<class F, class fF, class R>
 class BodyClassContext: public ITrainingContex<F, HistAggregator>
 {
 private:
-  int nClasses_;
 
   //  boost::shared_ptr<IFeatureReponseFactory<F> > pFactory_;
-  IFeatureReponseFactory<F>* pFactory_;
+  std::shared_ptr<fF> pFactory_;
 
 public:
-  BodyClassContext(int nClass, IFeatureReponseFactory<F>* pF)
-    :nClasses_(nClass), pFactory_(pF){}
+  const int nClasses;
 
-private:
+  BodyClassContext(int nClass, std::shared_ptr<fF>& pFactory)
+    :nClasses(nClass), pFactory_(pFactory){}
+
   // Implementation of ITrainingContex
-  F GetRandomFeature(Random& random)
+  F GetRandomFeature()
   {
-    return pFactory_->CreateRandom(random);
+    return pFactory_->CreateRandom();
+  }
+
+  inline R& GetRNG()
+  {
+    return pFactory->GetRNG();
   }
 
   HistAggregator GetStatsAggregator()
   {
-    return HistAggregator(nClasses_);
+    return HistAggregator(nClasses);
   }
 
   double ComputeInfoGain(const HistAggregator& allStats,
@@ -44,8 +49,8 @@ private:
     if (nTotalSamples <= 1)
       return 0.0;
 
-    double H_after = ( leftStats.SampleCount() * leftStats.Entropy() 
-		       + rightStats.SampleCount * rightEntropy() ) / nTotalSamples;
+    double H_after = ( leftStats.SampleCount() * leftStats.GetEntropy() 
+		       + rightStats.SampleCount() * rightStats.GetEntropy() ) / nTotalSamples;
 
     return H_before - H_after;
   }
@@ -58,5 +63,4 @@ private:
     // 2. Too few samples falling in each leaves??
     return gain <0.01;
   }
-
 }

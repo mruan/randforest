@@ -18,8 +18,8 @@ public:
   virtual float GetResponse(const IDataCollection& data, unsigned int index) const=0;
 
   // Compute reponse for all given data given in a list
-  virtual unique_ptr<float> GetReponse(const IDataCollection& data, 
-				       std::vector<unsigned int>& indices) const=0;
+  //  virtual unique_ptr<float> GetReponse(const IDataCollection& data, 
+  //				       std::vector<unsigned int>& indices) const=0;
 };
 
 template<class S> // S is a concrete type of Aggregator
@@ -46,8 +46,14 @@ template<class F, class S, class R>
 class ITrainContext
 {
 public:
+  // Random number generator
+  virtual R rng;
+
+  // 
+  virtual R& GetRng() {return rng;}
+
   // Called by the training framework to generate a new random feature.
-  virtual F CreateRandFeature(R& rng)=0;
+  virtual F CreateRandFeature()=0;
 
   // Called by the framework to
   // create one StatsAggregator that is specific for this problem
