@@ -4,10 +4,11 @@ project (randomforest)
 add_subdirectory(sherwood)
 
 include_directories(
-  external/
+  sherwood_c0x/
+  include/
 )
+
 
 #link_directories()
 
 add_subdirectory(src)
-

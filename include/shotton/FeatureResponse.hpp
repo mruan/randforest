@@ -4,14 +4,19 @@
 
 // forward declaration?
 // class Random;
-#include <random>
+//#include <random>
+
 #include "DataCollection.hpp"
 
 class OffsetFeature
 {
+public:
   COORDTYPE u1, v1, u2, v2;
 
-  //  static const short int box_range;
+  //  static short int box_range;
+  //  static float const2ndrate;
+  static std::uniform_int_distribution<short int> uniform_dist;
+  static std::bernoulli_distribution bernoulli_dist;
 
 public:
   OffsetFeature():u1(0),v1(0),u2(0),v2(0){}
@@ -29,6 +34,23 @@ public:
   {// It's better to call this from Data's point of view
     return data.GetResponse(sampleIdx, *this);
   }
+
+  template<typename URNG>
+  static OffsetFeature GetRandFeature(URNG& g)
+  {
+    OffsetFeature of;
+    // first feature is always somewhere else:
+    of.u1 = uniform_dist(g);
+    of.v1 = uniform_dist(g);
+
+    // second feature might be zero
+    if (!bernoulli_dist(rng))
+      {
+	of.u2 = uniform_dist(g);
+	of.v2 = uniform_dist(g);
+      }
+    return of;
+  }
 };
 
 template<class R>
@@ -39,22 +61,6 @@ public:
   OffsetFeatureFacotory(R& RandNumGen, short int box_range, float const2ndrate)
     :rng(RandNumGen), un_int(-box_range, box_range), bern(const2ndrate)
   {
-  }
-
-  OffsetFeature GetRandFeature()
-  {
-    OffsetFeature of;
-    // first feature is always somewhere else:
-    of.u1 = un_int(rng);
-    of.v1 = un_int(rng);
-
-    // second feature might be zero
-    if (!bern(rng))
-      {
-	of.u2 = un_int(rng);
-	of.v2 = un_int(rng);
-      }
-    return of;
   }
 
   inline R& GetRNG() { return rng;}

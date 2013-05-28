@@ -29,6 +29,10 @@ class HistAggregator
 
   HistAggregator DeepClone() const;
 
+  static double ComputeInfoGain(HistAggregator& p, 
+				HistAggregator& l, 
+				HistAggregator& r);
+
  private:
   const unsigned int binCount_;
   unsigned int sampleCount_;

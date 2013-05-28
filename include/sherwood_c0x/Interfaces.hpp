@@ -2,11 +2,14 @@
 
 #include <memory> // for unique_ptr
 
+template<class F>
 class IDataCollection
 {
 public:
   virtual ~IDataCollection() {};
   virtual unsigned int Count() const=0;
+
+  virtual float GetResponse(unsigned int index, F feature);
 };
 
 // Compute (single precision) response for data sample.
@@ -31,6 +34,8 @@ public:
   // Update statistics with one additional data point
   virtual void Aggregate(const IDataCollection& data);
 
+  virtual double ComputeInfoGain(S& parent, S& left, S& right);
+
   virtual S DeepClone() const=0;
 };
 
@@ -41,6 +46,7 @@ public:
 /// IFeatureResponse and IStatisticsAggregator instances, to compute
 /// information gain, and to decide when to terminate training of a
 /// particular tree branch.
+/*
 template<class F, class S, class R>
 // F: IFeatureResponse, S: IStatsAggregator. R: random number engine
 class ITrainContext
@@ -66,3 +72,4 @@ public:
   // TODO: absorb into the previous function?
   virtual double ShouldStop(const S& p, const S& l, const S& r, double gain)=0;
 };
+*/

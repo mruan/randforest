@@ -1,25 +1,27 @@
 
+#include <random>
 #include "Node.hpp"
+#include "Tree.hpp"
+//#include "Interface.hpp"
 
-template class<T, D, C, F>
+template class<F, S, D>
 // D: data, FF: featureFactory, F: feature, S: stats, T: tree
 class TreeTrainer
 {
+private:
   typedef std::vector<unsigned char> LabelType;
 
-private:
-  std::shared_ptr<T> pTree_;
+  std::shared_ptr<Tree<F,S> > pTree_;
   std::shared_ptr<D> pData_;
   std::shared_ptr<LabelType > pLabels_;
-  std::shared_ptr<C> pContext_;
+  //  std::shared_ptr<IContext> pContext_;
   TrainParams params_;
 
-  // Local stuff:
- 
-  // These are just global storage for memory efficiency
-  uniform_int_distribution<DataIndex> un_int;
-  uniform_real_distribution<float> un_real;
+  // Local stuff: 
+  uniform_int_distribution<DataIndex> un_int; // [0, max_int]
+  uniform_real_distribution<float> un_real;   // [0.0, 1.0]
 
+  // These are just global storage for memory efficiency
   S myStats_, leftStats_, rightStats_, ;
   std::vector<S> partitionStats_;
   std::vector<float> thresholds; // much smaller in size
@@ -28,14 +30,11 @@ private:
 
 public:
   TreeTrainer(std::shared_ptr<T>& pTree, std::shared_ptr<D>& pData,
-	      std::shared_ptr<LabelType>& plabels, std::shared_ptr<C> pContext,
-	      TrainParams params)
-    :pTree_(pTree), pData_(pData), plabels_(pLabels), pContext_(pContext),
-     // Distributions: requires Random Number Generator to work
-     un_int(0, 1), un_real(0.0f, 1.0f),
+	      std::shared_ptr<LabelType>& plabels, int nClass,TrainParams params)
+    :pTree_(pTree), pData_(pData), pLabels_(pLabels), params_(params),
      // Stats must be intialized with a known number of classes
-     myStats_(pContext->nClasses), leftStats_(pContext->nClasses), rightStats_(pContext->nClasses), 
-     partitionStats(params.NumThresholdsPerFeature + 1, S(pContext->nClasses)),
+     myStats_(nClass), leftStats_(nClass), rightStats_(nClass), 
+     partitionStats(params.NumThresholdsPerFeature + 1, S(nClass)),
      // Pre-allocate spaces
      thresholds(params.NumThresholdsPerFeature + 1, 0.0f),
      dataIndices(pData->Count()), responses(pData->Count(), 0.0f)
@@ -63,9 +62,9 @@ public:
     double best_gain = 0.0;
     F best_feature;
     float best_threshold = 0.0f;
-    for(int f=0; f < tp.NumCandidateFeatures; ++f)
+    for(int f=0; f < params_.NumCandidateFeatures; ++f)
       {
-	F this_feature = pContex->GetRandomFeature();
+	F this_feature = F::GetRandomFeature(rng_);
 
 	// Compute response
 	for(DataIndex i=i0; i<i1; i++)
@@ -101,7 +100,7 @@ public:
 	      }
 
 	    // Compute Information Gain
-	    double gain = pContext_->ComputeInfoGain(myStats_, leftStats_, rightStats_);
+	    double gain = S::ComputeInfoGain(myStats_, leftStats_, rightStats_);
 	    
 	    if (gain >= maxGain)
 	      {
@@ -163,15 +162,15 @@ private:
 
     int nThresholds;
     // If there are enough response values...
-    if (i1 - i0 > params_.NumThresholdsPerFeature)
+    int diffIdx = i1 - i0;
+    if (diffIdx > params_.NumThresholdsPerFeature)
       {
 	//... make a random draw of NumThresholdsPerFeature + 1 response values
 	nThresholds = params_.NumThresholdsPerFeature;
 	for (int i=0; i< nThresholds+1; i++)
 	  {
-	    un_int.a() = i0;
-	    un_int.b() = i1;
-	    quantiles[i] = responses[un_int(pContext_->GetRNG())];//needs a global rng
+	    // quantiles <- a random response within range [i0, i1]
+	    quantiles[i] = responses[i0+un_int(rng_)%diffIdx];
 	  }
       }
     else
@@ -189,7 +188,7 @@ private:
 
     // compute N candidate thresholds by sampling in between N+1 apprixmate quantiles
     for (int i=0; i< nThresholds; i++)
-      thresholds[i] = quantiles[i] + (un_real(pContext_->GetRNG())*(quantiles[i+1]-quantiles[i]));
+      thresholds[i]=quantiles[i]+(un_real(rng_)*(quantiles[i+1]-quantiles[i]));
 
     return nThresholds;
   }

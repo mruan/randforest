@@ -78,3 +78,18 @@ Aggregate(const HistAggregator& aggr)
 }
 
 // FIX:: deep clone
+
+double HistAggregator::
+ComputeInfoGain(const HistAggregator& Pstats,
+		const HistAggregator& Lstats,
+		const HistAggregator& Rstats)
+{
+  double H_before = Pstats.GetEntropy();
+  unsigned int nTotalSamples = Lstats.SampleCount() + Rstats.SampleCount();
+  if (nTotalSamples <= 1)
+    return 0.0;
+
+  double H_after = ( Lstats.SampleCount()*Lstats.GetEntropy()
+		    +Rstats.SampleCount()*Rstats.GetEntropy() )/nTotalSamples;
+  return H_before - H_after;
+}

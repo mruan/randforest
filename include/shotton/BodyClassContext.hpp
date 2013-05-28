@@ -8,19 +8,18 @@
 #include "FeatureResponse.hpp"
 #include "DataCollection.hpp"
 
-template<class F, class fF, class R>
+template<class F>
 class BodyClassContext: public ITrainingContex<F, HistAggregator>
 {
 private:
-
   //  boost::shared_ptr<IFeatureReponseFactory<F> > pFactory_;
-  std::shared_ptr<fF> pFactory_;
+  //  std::shared_ptr<fF> pFactory_;
 
 public:
   const int nClasses;
 
-  BodyClassContext(int nClass, std::shared_ptr<fF>& pFactory)
-    :nClasses(nClass), pFactory_(pFactory){}
+  BodyClassContext(int nClass)
+    :nClasses(nClass){}
 
   // Implementation of ITrainingContex
   F GetRandomFeature()
@@ -28,19 +27,15 @@ public:
     return pFactory_->CreateRandom();
   }
 
-  inline R& GetRNG()
-  {
-    return pFactory->GetRNG();
-  }
-
+  /*
   HistAggregator GetStatsAggregator()
   {
     return HistAggregator(nClasses);
   }
-
-  double ComputeInfoGain(const HistAggregator& allStats,
-			 const HistAggregator& leftStats, 
-			 const HistAggregator& rightStats)
+  */
+  double ComputeInfoGain(const S& allStats,
+			 const S& leftStats, 
+			 const S& rightStats)
   {
     double H_before = allStats.GetEntropy();
 
@@ -55,8 +50,8 @@ public:
     return H_before - H_after;
   }
 
-  bool ShouldTerminate(const HistAggregator& parent, const HistAggregator& leftChild,
-		       const HIstAggregator& rightChild, gain)
+  bool ShouldTerminate(const S& parent, const S& leftChild,
+		       const S& rightChild, gain)
   {
     // TODO:
     // 1. Stop when gain is too small or 
