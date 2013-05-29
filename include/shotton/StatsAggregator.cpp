@@ -57,7 +57,7 @@ Aggregate(const unsigned char classID)
   ++bins_[classID];
   ++sampleCount_;
 }
-
+/*
 void HistAggregator::
 Aggregate(std::vector<unsigned char>& labels, std::vector<int>& index)
 {
@@ -66,7 +66,7 @@ Aggregate(std::vector<unsigned char>& labels, std::vector<int>& index)
 
   sampleCount += index.size();
 }
-
+*/
 void HistAggregator::
 Aggregate(const HistAggregator& aggr)
 {

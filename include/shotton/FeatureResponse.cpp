@@ -1,3 +1,5 @@
+// Obsolete
+
 #include "FeatureResponse.hpp"
 
 #include "DataCollection.hpp"
