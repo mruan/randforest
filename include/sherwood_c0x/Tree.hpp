@@ -14,12 +14,13 @@ template<class F, class S> class Tree
 {
 #define MAX_TREE_DEPTH 20
 private:
-  int maxLevels_;
-
   std::vector<Node<F,S> > nodes_;
 
 public:
-  Tree(int maxLevels):maxLevels_(maxLevels)
+  // Can be directly viewed from outside:
+  const int maxLevels;
+
+  Tree(int maxlvl):maxLevels(maxlvl)
   {
     if(maxLevels <=0)
       throw std::runtime_error("Tree cannot have fewer than 1 levels.");
@@ -43,7 +44,7 @@ public:
     // write type information here for safer deserialization (and
     // friendlier exception descriptions in the event that the user
     // tries to deserialize a tree of the wrong type).
-    os.write((const char*) &maxLevels_, sizeof(maxLevels_));
+    os.write((const char*) &maxLevels, sizeof(maxLevels));
 
     for(int n=0; n < nodes_.size(); n++)
       nodes_[n].Serialize(os);

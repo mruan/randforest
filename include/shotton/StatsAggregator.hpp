@@ -1,6 +1,7 @@
 #pragma once
 
 #include <limits>
+#include <cstring>
 
 class HistAggregator
 {
@@ -10,7 +11,7 @@ class HistAggregator
 
   double GetEntropy() const
   {
-    if (sampleCount ==0)
+    if (sampleCount_ ==0)
       return 0.0;
     
     double result = 0.0;
@@ -25,7 +26,7 @@ class HistAggregator
 
   double GetClassProb(int classIndex) const
   {
-    return (double)(bins_[classIdx]) /sampleCount_;
+    return (double)(bins_[classIndex]) /sampleCount_;
   }
 
   unsigned int BinCount() const {return binCount_;};

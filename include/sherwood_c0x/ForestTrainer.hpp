@@ -2,6 +2,7 @@
 
 #include <random> // for random distributions
 #include <memory> // for shared_ptr
+#include <algorithm> // for sort
 
 //#include "Node.hpp"
 #include "Tree.hpp"
@@ -21,6 +22,7 @@ private:
   TrainParams params_;
 
   // Local stuff: 
+  std::mt19937 rng_;
   std::uniform_int_distribution<DataIndex> un_int; // [0, max_int]
   std::uniform_real_distribution<float> un_real;   // [0.0, 1.0]
 
@@ -35,6 +37,7 @@ public:
   TreeTrainer(std::shared_ptr<Tree<F,S>>& pTree, std::shared_ptr<D>& pData,
 	      std::shared_ptr<LabelType>& pLabels, int nClass,TrainParams params)
     :pTree_(pTree), pData_(pData), pLabels_(pLabels), params_(params),
+     rng_(0),// TODO: make the seed a variable
      // Stats must be intialized with a known number of classes
      myStats_(nClass), LcStats_(nClass), RcStats_(nClass), 
      partitionStats_(params.NumThresholdsPerFeature + 1, S(nClass)),
@@ -52,13 +55,14 @@ public:
   {
     // TODO: Aggregate the stats at this node:
     myStats_.Clear();
-    myStats_.Aggregate(labels_, dataIndices);
+    //myStats_.Aggregate(plabels_, dataIndices);
     
     // If this is a leaf node, nothing else to do
-    if (nodeIdx >= nodes.size() / 2)// FIX: figure out 
+    if (curDepth == pTree_->maxLevels)// FIX: figure out 
       {
-        pTree_->GetNode(nodeIndex).InitLeaf(myStats_);
-        progress_[Verbose] << "Terminating at max depth." << std::endl;
+        pTree_->GetNode(nodeIdx).InitLeaf(myStats_);
+	//        progress_[params_.Verbose]
+	std::cout << "Terminating at max depth." << std::endl;
         return;
       }
 
@@ -105,20 +109,21 @@ public:
 	    // Compute Information Gain
 	    double gain = S::ComputeInfoGain(myStats_, LcStats_, RcStats_);
 	    
-	    if (gain >= maxGain)
+	    if (gain >= best_gain)
 	      {
-		maxGain = gain;
-		bestFeature = feature;
-		bestThreshold = thresholds[t];
+		best_gain = gain;
+		best_feature = this_feature;
+		best_threshold = thresholds[t];
 	      }
 	  }
       }
 
     // Whether training should terminate?
-    if (maxGain == 0.0)
+    if (best_gain == 0.0)
       {
-	pTree_->GetNode(nodeIndex).InitLeaf(myStats_);
-	progress_[Verbose] << " Terminating with zero gain." << std::endl;
+	pTree_->GetNode(nodeIdx).InitLeaf(myStats_);
+	//	progress_[params_.Verbose] 
+	std::cout<< " Terminating with zero gain." << std::endl;
 	return;
       }
 
@@ -128,28 +133,31 @@ public:
 
     for(DataIndex i=i0; i < i1; i++)
       {
-	responses[i] = bestFeature.GetResponse(data_, dataIndices[i]);
-	if (response[i] < bestThreshold)
-	  LcStats_.Aggregate(labels_, dataIndices[i]);
+	responses[i] = pData_->GetResponse(dataIndices[i], best_feature);
+	if (responses[i] < best_threshold)
+	  LcStats_.Aggregate(pLabels_, dataIndices[i]);
 	else
-	  RcStats_.Aggregate(labels_, dataIndices[i]);
+	  RcStats_.Aggregate(pLabels_, dataIndices[i]);
       }
 
-    if(pContext_->ShouldTerminate(myStats_, LcStats_, RcStats_))
+    //    if(pContext_->ShouldTerminate(myStats_, LcStats_, RcStats_))
+    if (best_gain < 0.01)// TODO: what about purity?
       {
-	pTree_->GetNode(nodeIndex).InitLeaf(myStats_);
-	progress_[Verbose] << "Terminating with no splits." << std::endl;
+	pTree_->GetNode(nodeIdx).InitLeaf(myStats_);
+	//	progress_[params_.Verbose] 
+	std::cout << "Terminating with no splits." << std::endl;
 	return;
       }
 
     // Otherwise this is a new decision node, recurse for children.
     // nodes[nodeIndex].InitializeSplit(bestFeature, bestThreshold, parentStats);
-    pTree_->GetNode(nodeIndex).InitSplit(bestFeature, bestThreshold);
+    pTree_->GetNode(nodeIdx).InitSplit(best_feature, best_threshold);
 
-    DataIndex middle = Tree<F,S>::Partition(responses, dataIndices, i0, i1, bestThreshold);
+    DataIndex middle = Tree<F,S>::Partition(responses, dataIndices, i0, i1, best_threshold);
     assert(middle>= i0 && middle <= i1);
 
-    progress_[Verbose] << " (threshold = " << bestThreshold << ", gain = "<< maxGain << ")." << std::endl;
+    //    progress_[params_.Verbose]
+    std::cout << " (threshold = " << best_threshold << ", gain = "<< best_gain << ")." << std::endl;
 
     TrainNodeRecurse(nodeIdx*2+1, i0, middle, curDepth+1);
     TrainNodeRecurse(nodeIdx*2+2, middle, i1, curDepth+1);

@@ -20,10 +20,10 @@ typedef vector<unsigned char> ClassType;
 typedef TreeTrainer<OffsetFeature, HistAggregator, DataType> TreeTrainerType; 
 
 const int box_range = 50;
-OffsetFeature::uniform_dist(-box_range, box_range);
-OffsetFeature::bernoulli_dist(0.5);
+std::uniform_int_distribution<short int> OffsetFeature::uniform_dist(-box_range, box_range);
+std::bernoulli_distribution OffsetFeature::bernoulli_dist(0.5);
 
-int main(int argc, char* argv)
+int main(int argc, char** argv)
 {
   // Pre-program initialization
 
@@ -31,7 +31,6 @@ int main(int argc, char* argv)
 
   // Q: How to create a forest?
   // A: create a tree first
-  std::mt19937 g1 (seed1);
 
   // Params: 1. rng; 2. box range 3. 2nd point stationary rate
   //  shared_ptr<FfactoryType > pFf(new FfactoryType(g1, 20, 0.5));
