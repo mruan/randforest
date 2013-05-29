@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include <random>
-#include <vector>
+//#include <random>
+//#include <vector>
 
 //#include <types.hpp>
 #define INVALID  0
@@ -18,16 +18,17 @@ public:
   F feature;
   float threshold;
   
-  unique_ptr<S> pStats;
-
-  static Node& make_node(unsigned char type, F f, float th, unique_ptr<S> pS)
+  std::unique_ptr<S> pStats;
+  /*
+  static Node& make_node(unsigned char type, F f, float th, std::unique_ptr<S> pS)
   {
     return Node(type, f, th, pS);
   }
+  */
 
   Node():nodeType(INVALID){}
 
-  Node(unsigned char type, F f, float th, unique_ptr<S> pS)
+  Node(unsigned char type, F f, float th, std::unique_ptr<S> pS)
     :nodeType(type),feature(f), threshold(th), pStats(pS){}
 
   void Serialize(std::ostream& os) const
@@ -44,11 +45,11 @@ public:
     pStats.reset(S::Deserialize(is));
   }
 
-  bool IsSplit() const{ return nodeType == SPLIT; }
+  inline bool IsSplit() const{ return nodeType == SPLIT; }
 
-  bool IsLeaf() const { return nodeType == LEAF; }
+  inline bool IsLeaf() const { return nodeType == LEAF; }
 
-  bool IsNull() const { return nodeType == INVALID;}
+  inline bool IsNull() const { return nodeType == INVALID;}
 
   void InitSplit(F& f, float th)
   {

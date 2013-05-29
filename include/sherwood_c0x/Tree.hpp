@@ -6,11 +6,13 @@
 
 #include <iostream>
 #include <vector>
+#include <stdexcept>
 
+#include "Node.hpp"
 
 template<class F, class S> class Tree
 {
-
+#define MAX_TREE_DEPTH 20
 private:
   int maxLevels_;
 
@@ -22,7 +24,7 @@ public:
     if(maxLevels <=0)
       throw std::runtime_error("Tree cannot have fewer than 1 levels.");
 
-    if(maxLevels >20)
+    if(maxLevels > MAX_TREE_DEPTH)
       throw std::runtime_error("Tree cannot handle more than 20 levels.");
 
     // this may waste some memory but it is more efficient to retrieve nodes
@@ -72,12 +74,12 @@ public:
 
   inline const Node<F,S>& GetNode(int index) const
   {
-    return nodes_.[index];
+    return nodes_[index];
   }
 
   inline Node<F,S>& GetNode(int index)
   {
-    return nodes_.[index];
+    return nodes_[index];
   }
 
   void CheckValid() const

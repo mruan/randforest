@@ -1,5 +1,14 @@
 #include <random>
 
+#include "Tree.hpp"
+#include "Params.hpp"
+
+#include "DataCollection.hpp"
+#include "FeatureResponse.hpp"
+#include "StatsAggregator.hpp"
+
+#include "ForestTrainer.hpp"
+
 #define MAX_DEPTH 10
 
 using namespace std;

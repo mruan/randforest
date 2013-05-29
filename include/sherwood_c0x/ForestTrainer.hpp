@@ -1,11 +1,14 @@
+#pragma once
 
-#include <random>
-#include "Node.hpp"
+#include <random> // for random distributions
+#include <memory> // for shared_ptr
+
+//#include "Node.hpp"
 #include "Tree.hpp"
-//#include "Interface.hpp"
+#include "Params.hpp"
 
-template class<F, S, D>
-// D: data, FF: featureFactory, F: feature, S: stats, T: tree
+template <class F, class S, class D>
+// D: data, F: feature, S: stats
 class TreeTrainer
 {
 private:
@@ -18,23 +21,23 @@ private:
   TrainParams params_;
 
   // Local stuff: 
-  uniform_int_distribution<DataIndex> un_int; // [0, max_int]
-  uniform_real_distribution<float> un_real;   // [0.0, 1.0]
+  std::uniform_int_distribution<DataIndex> un_int; // [0, max_int]
+  std::uniform_real_distribution<float> un_real;   // [0.0, 1.0]
 
   // These are just global storage for memory efficiency
-  S myStats_, leftStats_, rightStats_, ;
+  S myStats_, LcStats_, RcStats_;
   std::vector<S> partitionStats_;
   std::vector<float> thresholds; // much smaller in size
   std::vector<unsigned int> dataIndices; // these are as big as Data (in term of size)
   std::vector<float> responses;
 
 public:
-  TreeTrainer(std::shared_ptr<T>& pTree, std::shared_ptr<D>& pData,
-	      std::shared_ptr<LabelType>& plabels, int nClass,TrainParams params)
+  TreeTrainer(std::shared_ptr<Tree<F,S>>& pTree, std::shared_ptr<D>& pData,
+	      std::shared_ptr<LabelType>& pLabels, int nClass,TrainParams params)
     :pTree_(pTree), pData_(pData), pLabels_(pLabels), params_(params),
      // Stats must be intialized with a known number of classes
-     myStats_(nClass), leftStats_(nClass), rightStats_(nClass), 
-     partitionStats(params.NumThresholdsPerFeature + 1, S(nClass)),
+     myStats_(nClass), LcStats_(nClass), RcStats_(nClass), 
+     partitionStats_(params.NumThresholdsPerFeature + 1, S(nClass)),
      // Pre-allocate spaces
      thresholds(params.NumThresholdsPerFeature + 1, 0.0f),
      dataIndices(pData->Count()), responses(pData->Count(), 0.0f)
@@ -47,7 +50,7 @@ public:
 
   void TrainNodeRecurse(const int nodeIdx, DataIndex i0, DataIndex i1, int curDepth)
   {
-    // Aggregate the stats at this node:
+    // TODO: Aggregate the stats at this node:
     myStats_.Clear();
     myStats_.Aggregate(labels_, dataIndices);
     
@@ -88,19 +91,19 @@ public:
 	// Slightly more efficient way of looping over all samples and thresholds
 	for(int t=0; t < nThresholds; t++)
 	  {
-	    leftStats_.Clear();
-	    rightStats_.Clear();
+	    LcStats_.Clear();
+	    RcStats_.Clear();
 
 	    for (int p=0; p < nThresholds + 1; ++p)
 	      {
 		if (p <= t)
-		  leftStats_.Aggregate(partitionStats_[p]);
+		  LcStats_.Aggregate(partitionStats_[p]);
 		else
-		  rightStats_.Aggregate(partitionStats_[p]);
+		  RcStats_.Aggregate(partitionStats_[p]);
 	      }
 
 	    // Compute Information Gain
-	    double gain = S::ComputeInfoGain(myStats_, leftStats_, rightStats_);
+	    double gain = S::ComputeInfoGain(myStats_, LcStats_, RcStats_);
 	    
 	    if (gain >= maxGain)
 	      {
@@ -120,19 +123,19 @@ public:
       }
 
     // Reorder the data points indices using the winning feature and thresholds
-    leftStats_.Clear();
-    rightStats_.Clear();
+    LcStats_.Clear();
+    RcStats_.Clear();
 
     for(DataIndex i=i0; i < i1; i++)
       {
 	responses[i] = bestFeature.GetResponse(data_, dataIndices[i]);
 	if (response[i] < bestThreshold)
-	  leftStats_.Aggregate(labels_, dataIndices[i]);
+	  LcStats_.Aggregate(labels_, dataIndices[i]);
 	else
-	  rightStats_.Aggregate(labels_, dataIndices[i]);
+	  RcStats_.Aggregate(labels_, dataIndices[i]);
       }
 
-    if(pContext_->ShouldTerminate(myStats_, leftStats_, rightStats_))
+    if(pContext_->ShouldTerminate(myStats_, LcStats_, RcStats_))
       {
 	pTree_->GetNode(nodeIndex).InitLeaf(myStats_);
 	progress_[Verbose] << "Terminating with no splits." << std::endl;

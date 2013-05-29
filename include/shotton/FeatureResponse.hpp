@@ -1,4 +1,4 @@
-#program once
+#pragma once
 
 // This file implements IFeatureResponse used by the tree trainer
 
@@ -6,7 +6,7 @@
 // class Random;
 //#include <random>
 
-#include "DataCollection.hpp"
+//#include "DataCollection.hpp"
 
 class OffsetFeature
 {
@@ -15,6 +15,7 @@ public:
 
   //  static short int box_range;
   //  static float const2ndrate;
+  // global distribution generating function, needs initialization before main
   static std::uniform_int_distribution<short int> uniform_dist;
   static std::bernoulli_distribution bernoulli_dist;
 
@@ -30,11 +31,14 @@ public:
   //  static OffsetFeature CreateRandom(Random& random, short int range);
 
   // IFeatureResponse implementation
+  /*
   inline float GetResponse(const IDataPointCollection& data, unsigned int sampleIdx)
   {// It's better to call this from Data's point of view
     return data.GetResponse(sampleIdx, *this);
   }
+  */
 
+  // Create random feature
   template<typename URNG>
   static OffsetFeature GetRandFeature(URNG& g)
   {
@@ -44,7 +48,7 @@ public:
     of.v1 = uniform_dist(g);
 
     // second feature might be zero
-    if (!bernoulli_dist(rng))
+    if (!bernoulli_dist(g))
       {
 	of.u2 = uniform_dist(g);
 	of.v2 = uniform_dist(g);
@@ -52,7 +56,7 @@ public:
     return of;
   }
 };
-
+/*
 template<class R>
 class OffsetFeatureFactory
 {
@@ -70,3 +74,4 @@ private:
   std::uniform_int_distribution<short int> un_int;
   std::bernoulli_distribution bern;
 };
+*/

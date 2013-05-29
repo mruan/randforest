@@ -1,3 +1,6 @@
+# Temporary objects/files
+*~
+
 # Compiled Object files
 *.slo
 *.lo
@@ -11,3 +14,9 @@
 *.lai
 *.la
 *.a
+
+# CMake staff
+CMakeCache.txt
+CMakeFiles/
+*Makefile
+*.cmake

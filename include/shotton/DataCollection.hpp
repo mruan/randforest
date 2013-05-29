@@ -5,8 +5,9 @@
 // DataCollection
 #include <iostream>
 #include <exception>
+#include <cfloat>
 
-typedef COORDTYPE short int
+typedef short int COORDTYPE;
 struct CoordIdx
 {
   COORDTYPE x, y;
@@ -15,17 +16,17 @@ struct CoordIdx
 
 class RangeImage
 {
-#define W 174
-#define H 144
+  static const int W = 174;
+  static const int H = 144;
 public:
-  RangeImage()//const int width, const int height)
+  RangeImage(int i=0)//const int width, const int height)
   //    :W(width), H(height)
   {
     try{
-      pData(new float[W*H]);
+      pData.reset(new float[W*H]);
     }
-    catch(exception& e){
-      std::cout<< "Exception: " << e.what() << std::endl;
+    catch(std::exception& e){
+      std::cout<< "Exception at" << i<< " : " << e.what() << std::endl;
     }
   }
   
@@ -47,7 +48,7 @@ public:
   }
 
 private:
-  std::unique_ptr<float> pData;
+  std::unique_ptr<float[]> pData;
 };
 
 //typedef typename std::vector<Node<F,S> >::size_type NodeIndex;
@@ -57,7 +58,7 @@ class RangeDataCollection
 {
 public:
   RangeDataCollection(const int nPixels, const int nFrames)
-  :samples_(nPixels), frames_(nFrames, RangeImage(width, height))
+  :samples_(nPixels), frames_(nFrames)
   {}
 
 public:
@@ -82,12 +83,17 @@ public:
     return frames_[coord.idx].GetDepth(coord.x, coord.y);
   }
 
+  /******************************************************************
+   This function implements the awesome feature in Shotton paper 2010
+   *****************************************************************/
+  template<class F>
   inline float GetResponse(unsigned int index, F& feature)
   {
     CoordIdx& coord = samples_[index];
     RangeImage& ri = frames_[coord.idx];
     float dOrigin = ri.GetDepth(coord.x, coord.y);
 
+    // TODO: how to deal with rounding error?
     COORDTYPE X1 = coord.x + feature.u1 / dOrigin;
     COORDTYPE Y1 = coord.y + feature.v1 / dOrigin;
 
@@ -95,5 +101,6 @@ public:
     COORDTYPE Y2 = coord.y + feature.v2 / dOrigin;
     return ri.GetDepth(X1, Y1) - ri.GetDepth(X2, Y2);
   }
+
   // FIX: TODO: how to serialize/deserialize these data from a script!
 };
